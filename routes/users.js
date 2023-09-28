@@ -1,12 +1,20 @@
 const { verifyTokenAuth, verifyTokenAdmin } = require('./verifyToken');
 const User = require('../models/User')
+const bcrypt = require("bcrypt")
+const { check, validationResult } = require('express-validator');
 
 
 const router = require('express').Router();
 
+
 router.put("/:id", verifyTokenAuth, async(req, res)=>{
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
     if (req.body.password){
-        req.body.password = CryptoJS.AES.encrypt(req.body.password, process.env.SECRET).toString()
+        req.body.password = await bcrypt.hash(password, 10);
     }
     try {
     

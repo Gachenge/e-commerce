@@ -3,16 +3,22 @@ const Product = require('../models/Products');
 const { verifyTokenAdmin } = require('./verifyToken');
 
 router.post("/add", verifyTokenAdmin, async (req, res)=> {
-    const newProduct = new Product(req.body)
-
     try {
+        // Check if a product with the same title exists
+        const existingProduct = await Product.findOne({ title: req.body.title });
+    
+        if (existingProduct) {
+            return res.status(400).json({ message: "Product already exists" });
+        }
+    
+        const newProduct = new Product(req.body);
+    
         const saved = await newProduct.save();
-        res.status(200).json(saved)
+        res.status(200).json(saved);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
-    catch(err){
-        res.status(500).json(err.message)
-    }
-})
+})    
 
 router.put("/:id", verifyTokenAdmin, async (req, res)=> {
     try {
@@ -43,7 +49,7 @@ router.delete("/:id", verifyTokenAdmin, async(req, res)=> {
 
 router.get("/:id", verifyTokenAdmin, async(req, res) => {
     try {
-        const product = Product.findById(req.params.id)
+        const product = await Product.findById(req.params.id)
         res.status(200).json(product)
     }
     catch(err) {
